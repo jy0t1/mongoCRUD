@@ -13,19 +13,20 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
+// insertone() will always create lower case elements based on the names given in structure. 
+//If field is defined Author_Email then insertone() will create the element as author_email in document
 type BookItem struct {
 	Id          int64 	`json:id`
 	Name 		string  `json:name`
 	Author  	string  `json:author`
-	AuthorEmail string  `json:authoremail`
+	AuthorEmail string  `json:authorEmail`
 	Published 	string 	`json:published`
 	Pages 		int64  	`json:pages`
 	Publisher 	string 	`json:publisher`
-    IsAvailable bool 	`json:isavailable`
+    IsAvailable bool 	`json:isAvailable`
     Category 	string 	`json:category`
-    BindType 	string 	`json:bindtype`
-    PhotoPath 	string 	`json:photopath`
+    BindType 	string 	`json:bindType`
+    PhotoPath 	string 	`json:photoPath`
 }
 
 var bookCollection = db().Database("library_db").Collection("book_records") 
@@ -146,7 +147,7 @@ func createBook(w http.ResponseWriter, r *http.Request) {
 	myBook.Category = inputCatg
 	myBook.BindType = inputBind
 	myBook.PhotoPath = inputPhoto
-
+    fmt.Println(myBook)
 	insertResult, err := bookCollection.InsertOne(context.TODO(), myBook )
 	if err != nil {
 		log.Fatal(err)
@@ -184,13 +185,19 @@ func getBook(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(e)
 	}
 	fmt.Println(inputId)
-	var result primitive.M //  an unordered representation of a BSON document which is a Map
+	//var result primitive.M //  an unordered representation of a BSON document which is a Map
+	result := BookItem{}
 	err := bookCollection.FindOne(context.TODO(), bson.D{{"id", inputId}}).Decode(&result)
 	//err := bookCollection.FindOne(context.TODO(), bson.D{{"id", 1}}).Decode(&result)
 	if err != nil {
 		fmt.Println("in controllers => getBook 002")
 		fmt.Println(err)
 	}
+	fmt.Println(result.Id)
+	fmt.Println(result.Name)
+	fmt.Println(result.Published)
+	fmt.Println(result.IsAvailable)
+	fmt.Println(result.PhotoPath)
 	json.NewEncoder(w).Encode(result) // returns a Map containing document
 
 }
@@ -296,7 +303,7 @@ func updateBook(w http.ResponseWriter, r *http.Request) {
 	returnOpt := options.FindOneAndUpdateOptions{
 		ReturnDocument: &after,
 	}
-	update := bson.D{{"$set", bson.D{{"name", inputName},{"author",inputAuthor},{"authorEmail",inputAuthorEmail},{"published",inputPublished},{"pages",inputPages},{"publisher",inputPublisher},{"isAvailable",inputIsAvail},{"category",inputCatg},{"bindType",inputBind},{"photoPath",inputPhoto}}}}
+	update := bson.D{{"$set", bson.D{{"name", inputName},{"author",inputAuthor},{"authoremail",inputAuthorEmail},{"published",inputPublished},{"pages",inputPages},{"publisher",inputPublisher},{"isavailable",inputIsAvail},{"category",inputCatg},{"bindtype",inputBind},{"photopath",inputPhoto}}}}
 	updateResult := bookCollection.FindOneAndUpdate(context.TODO(), filter, update, &returnOpt)
 
 	var result primitive.M
